@@ -223,6 +223,9 @@
   .pay-method-btn.disabled:hover{border-color:#454C52; background:#2A3035;}
   .pm-name{font-weight:600; color:var(--bone); font-size:0.95rem;}
   .pm-note{font-size:0.78rem; color:#9A9384;}
+  .pay-methods-simple{margin:12px 0;}
+  .pay-methods-simple p{font-size:0.98rem; color:var(--bone); margin:8px 0;}
+  .pay-other-note{font-size:0.85rem; color:#9A9384; margin:14px 0 6px;}
   .back-link{
     display:block; margin-top:14px; background:none; border:none; color:#9A9384;
     font-size:0.82rem; text-decoration:underline; padding:0; cursor:pointer;
@@ -520,21 +523,57 @@
               <div class="summary-row"><span class="k">Deposit due now</span><span class="v" id="paySumDeposit">—</span></div>
               <div class="summary-row"><span class="k">Balance at session</span><span class="v" id="paySumBalance">—</span></div>
             </div>
-            <p class="pay-note">Pay the deposit with whichever app is easiest, then tap confirm below — that holds your time slot.</p>
+
+            <p class="pay-note">Send the deposit using whichever of these is set up right now:</p>
+
+            <!-- ============================================ -->
+            <!-- EDIT THE THREE LINES BELOW TO UPDATE PAYMENTS -->
+            <!-- Just replace the text after the dash, keep    -->
+            <!-- everything else (the <p> and <strong> tags)   -->
+            <!-- the same.                                     -->
+            <div class="pay-methods-simple">
+              <p><strong>PayPal</strong> — unavailable rn</p>
+              <p><strong>Venmo</strong> — unavailable rn</p>
+              <p><strong>Cash App</strong> — $JDRootes61</p>
+            </div>
+            <!-- ============ END EDIT AREA ================= -->
+
+            <p class="pay-other-note">Paying another way? Text or email me and we'll sort it out.</p>
+
+            <div class="field">
+              <label for="receiptUpload">Attach a screenshot of your payment (optional, but it speeds up confirmation)</label>
+              <input type="file" id="receiptUpload" accept="image/*">
+              <div id="receiptPreviewWrap" style="display:none; margin-top:10px;">
+                <img id="receiptPreview" alt="Your uploaded payment screenshot" style="max-width:160px; border-radius:4px; border:1px solid #454C52;">
+              </div>
+            </div>
+
+            <p class="pay-note">Then send it to me here — your details are already filled in, just attach the photo before you hit send:</p>
             <div class="pay-methods">
-              <a href="#" id="paypalBtn" target="_blank" rel="noopener" class="pay-method-btn">
-                <span class="pm-name">PayPal</span><span class="pm-note">opens with amount filled in</span>
+              <a href="#" id="emailReceiptBtn" target="_blank" rel="noopener" class="pay-method-btn">
+                <span class="pm-name">Email it to me</span><span class="pm-note">opens Mail with your details</span>
               </a>
-              <a href="#" id="cashappBtn" target="_blank" rel="noopener" class="pay-method-btn">
-                <span class="pm-name">Cash App</span><span class="pm-note">opens with amount filled in</span>
-              </a>
-              <a href="#" id="venmoBtn" target="_blank" rel="noopener" class="pay-method-btn">
-                <span class="pm-name">Venmo</span><span class="pm-note" id="venmoNote">enter amount manually</span>
+              <a href="#" id="textReceiptBtn" class="pay-method-btn">
+                <span class="pm-name">Text it to me</span><span class="pm-note">opens Messages with your details</span>
               </a>
             </div>
-            <button type="button" class="btn ghost" id="confirmAfterPayBtn" style="margin-top:16px;">I've sent it — confirm my booking</button>
+
+            <button type="button" class="btn ghost" id="confirmAfterPayBtn" style="margin-top:16px;">I've sent my payment — confirm my booking</button>
             <div class="form-msg" id="paymentMsg"></div>
             <button type="button" id="backToDetailsBtn" class="back-link">← Edit details</button>
+          </div>
+
+          <div class="pending-step" id="pendingStep" style="display:none;">
+            <div class="summary-card" style="margin-top:0;">
+              <div class="summary-row"><span class="k">Status</span><span class="v" style="color:#E3A484;">Pending confirmation</span></div>
+              <div class="summary-row"><span class="k">Name</span><span class="v" id="pendSumName">—</span></div>
+              <div class="summary-row"><span class="k">Treatment</span><span class="v" id="pendSumService">—</span></div>
+              <div class="summary-row"><span class="k">Date &amp; time</span><span class="v" id="pendSumWhen">—</span></div>
+              <div class="summary-row"><span class="k">Deposit</span><span class="v" id="pendSumDeposit">—</span></div>
+              <div class="summary-row"><span class="k">Contact</span><span class="v" id="pendSumContact">—</span></div>
+            </div>
+            <p class="pay-note">I'll check for your payment and text or email you once it's confirmed. You're safe to close this page.</p>
+            <button type="button" class="btn ghost" id="bookAnotherBtn" style="margin-top:6px;">Book another session</button>
           </div>
         </div>
       </div>
@@ -593,36 +632,9 @@ const OPEN_HOUR = 8, CLOSE_LAST_START = 21; // open mornings, last booking start
 const STORAGE_PREFIX = 'appt:';   // shared, keyed by appt:{date}:{time}
 const MY_PREFIX = 'mybooking:';   // personal
 
-// TODO: replace with your real PayPal.me username (e.g. if your link is
-// paypal.me/SariahMassage, set this to 'SariahMassage'). Until this is
-// changed, the Pay button below will not go to a real PayPal account.
-const PAYPAL_USERNAME = 'YOUR-PAYPAL-USERNAME';
-function paypalLink(amount){
-  return `https://paypal.me/${PAYPAL_USERNAME}/${amount}`;
-}
-
-// TODO: replace with your real Cash App $cashtag, without the $
-// (e.g. if your tag is $SariahMassage, set this to 'SariahMassage').
-const CASHAPP_CASHTAG = 'JDRootes61';
-function cashAppLink(amount){
-  return `https://cash.app/$${CASHAPP_CASHTAG}/${amount}`;
-}
-
-// TODO: replace with your real Venmo username, without the @
-// (e.g. if your profile is venmo.com/u/Sariah-Massage, set this to 'Sariah-Massage').
-// Venmo's web link doesn't reliably pre-fill an amount, so clients enter it themselves.
-const VENMO_USERNAME = 'YOUR-VENMO-USERNAME';
-function venmoLink(){
-  return `https://venmo.com/u/${VENMO_USERNAME}`;
-}
-
-// Returns true if a value is still one of the placeholder strings above
-// (anything starting with 'YOUR-'). Used to auto-hide a payment button
-// until it's actually been set to a real handle, so clients never see
-// a button that goes nowhere.
-function isPlaceholder(value){
-  return value.startsWith('YOUR-');
-}
+// TODO: replace with your real contact details if these ever change.
+const BUSINESS_PHONE = '+12172206859';
+const BUSINESS_EMAIL = 'xxsari75@gmail.com';
 
 /* ---------------- render treatments ---------------- */
 const grid = document.getElementById('treatmentsGrid');
@@ -776,10 +788,13 @@ const paymentStep = document.getElementById('paymentStep');
 const paymentMsg = document.getElementById('paymentMsg');
 const confirmAfterPayBtn = document.getElementById('confirmAfterPayBtn');
 const backToDetailsBtn = document.getElementById('backToDetailsBtn');
-const paypalBtn = document.getElementById('paypalBtn');
-const cashappBtn = document.getElementById('cashappBtn');
-const venmoBtn = document.getElementById('venmoBtn');
-const venmoNote = document.getElementById('venmoNote');
+const emailReceiptBtn = document.getElementById('emailReceiptBtn');
+const textReceiptBtn = document.getElementById('textReceiptBtn');
+const receiptUpload = document.getElementById('receiptUpload');
+const receiptPreviewWrap = document.getElementById('receiptPreviewWrap');
+const receiptPreview = document.getElementById('receiptPreview');
+const pendingStep = document.getElementById('pendingStep');
+const bookAnotherBtn = document.getElementById('bookAnotherBtn');
 
 let pendingBooking = null; // holds validated details between step 1 and step 2
 
@@ -791,6 +806,21 @@ function showPaymentMsg(text, type){
   paymentMsg.textContent = text;
   paymentMsg.className = 'form-msg show on-light ' + type;
 }
+
+// Local-only preview of the selected receipt photo. This is never
+// uploaded or sent anywhere automatically — browsers can't attach a
+// file to a text message or email link on their own. The person still
+// needs to tap the Email/Text button below and attach it there.
+receiptUpload.addEventListener('change', () => {
+  const file = receiptUpload.files[0];
+  if(!file){ receiptPreviewWrap.style.display = 'none'; return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    receiptPreview.src = reader.result;
+    receiptPreviewWrap.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
 
 // Step 1: validate details, then move to the payment step.
 form.addEventListener('submit', async (e) => {
@@ -851,35 +881,13 @@ form.addEventListener('submit', async (e) => {
   document.getElementById('paySumWhen').textContent = formatWhen(date, time);
   document.getElementById('paySumDeposit').textContent = `$${deposit}`;
   document.getElementById('paySumBalance').textContent = `$${balance} at your session`;
-  if(isPlaceholder(PAYPAL_USERNAME)){
-    paypalBtn.classList.add('disabled');
-    paypalBtn.removeAttribute('href');
-    paypalBtn.querySelector('.pm-note').textContent = 'Unavailable';
-  } else {
-    paypalBtn.classList.remove('disabled');
-    paypalBtn.href = paypalLink(deposit);
-    paypalBtn.querySelector('.pm-note').textContent = 'opens with amount filled in';
-  }
 
-  if(isPlaceholder(CASHAPP_CASHTAG)){
-    cashappBtn.classList.add('disabled');
-    cashappBtn.removeAttribute('href');
-    cashappBtn.querySelector('.pm-note').textContent = 'Unavailable';
-  } else {
-    cashappBtn.classList.remove('disabled');
-    cashappBtn.href = cashAppLink(deposit);
-    cashappBtn.querySelector('.pm-note').textContent = 'opens with amount filled in';
-  }
+  const receiptMsg = `Hi Sariah, here's my payment receipt.\n\nName: ${name}\nTreatment: ${treatmentName} (${durationObj.label})\nDate & time: ${formatWhen(date, time)}\nDeposit: $${deposit}\n\n(Attach your screenshot before sending!)`;
+  emailReceiptBtn.href = `mailto:${BUSINESS_EMAIL}?subject=${encodeURIComponent('Payment receipt — ' + name)}&body=${encodeURIComponent(receiptMsg)}`;
+  textReceiptBtn.href = `sms:${BUSINESS_PHONE}?&body=${encodeURIComponent(receiptMsg)}`;
 
-  if(isPlaceholder(VENMO_USERNAME)){
-    venmoBtn.classList.add('disabled');
-    venmoBtn.removeAttribute('href');
-    venmoNote.textContent = 'Unavailable';
-  } else {
-    venmoBtn.classList.remove('disabled');
-    venmoBtn.href = venmoLink();
-    venmoNote.textContent = `send $${deposit} with a note`;
-  }
+  receiptUpload.value = '';
+  receiptPreviewWrap.style.display = 'none';
 
   form.style.display = 'none';
   paymentStep.style.display = 'block';
@@ -893,9 +901,10 @@ backToDetailsBtn.addEventListener('click', () => {
   paymentMsg.className = 'form-msg';
 });
 
-// Step 2: after the person says they've paid, save the booking. Storage
-// failures here are logged but never shown as a blocking error — the
-// deposit and the appointment matter more than our own bookkeeping.
+// Step 2: after the person says they've paid, save the booking and move
+// to a dedicated pending-confirmation page showing their details.
+// Storage failures here are logged but never shown as a blocking error —
+// the deposit and the appointment matter more than our own bookkeeping.
 confirmAfterPayBtn.addEventListener('click', async () => {
   if(!pendingBooking) return;
   confirmAfterPayBtn.disabled = true;
@@ -909,8 +918,16 @@ confirmAfterPayBtn.addEventListener('click', async () => {
     console.warn('Could not save booking to storage (non-blocking):', err);
   }
 
-  showPaymentMsg(`Got it! Your ${record.serviceName} (${record.durationLabel}) request for ${formatWhen(record.date, record.time)} is pending — I'll text or email you to confirm once I see your deposit land.`, 'success');
-  confirmAfterPayBtn.textContent = "I've sent it — confirm my booking";
+  document.getElementById('pendSumName').textContent = record.name;
+  document.getElementById('pendSumService').textContent = `${record.serviceName} (${record.durationLabel})`;
+  document.getElementById('pendSumWhen').textContent = formatWhen(record.date, record.time);
+  document.getElementById('pendSumDeposit').textContent = `$${record.deposit}`;
+  document.getElementById('pendSumContact').textContent = `${record.phone} · ${record.email}`;
+
+  paymentStep.style.display = 'none';
+  pendingStep.style.display = 'block';
+
+  confirmAfterPayBtn.textContent = "I've sent my payment — confirm my booking";
   confirmAfterPayBtn.disabled = false;
 
   form.reset();
@@ -919,12 +936,11 @@ confirmAfterPayBtn.addEventListener('click', async () => {
   try{ renderSlots(); }catch(err){}
   try{ loadMyAppointments(); }catch(err){}
   pendingBooking = null;
+});
 
-  setTimeout(() => {
-    paymentStep.style.display = 'none';
-    form.style.display = 'flex';
-    paymentMsg.className = 'form-msg';
-  }, 3500);
+bookAnotherBtn.addEventListener('click', () => {
+  pendingStep.style.display = 'none';
+  form.style.display = 'flex';
 });
 
 /* ---------------- my appointments ---------------- */
@@ -1097,4 +1113,3 @@ renderReviews();
 
 </body>
 </html>
-
