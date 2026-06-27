@@ -316,9 +316,9 @@
     border-bottom:1px solid rgba(255,255,255,0.08);
   }
 </style>
+<base target="_blank">
 </head>
 <body>
-
 <header>
   <div class="nav">
     <a href="#top" class="logo">
@@ -378,6 +378,41 @@
       </div>
       <div class="treatments-grid" id="treatmentsGrid">
         <!-- filled by JS from TREATMENTS data, but kept static here for no-JS fallback / SEO -->
+        <div class="treatment">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M5 14c3-6 11-6 14 0M7 18c2-3 8-3 10 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+          <h3>Swedish Full-Body</h3>
+          <p class="desc">Long, flowing strokes across the whole body that ease general tension and calm the nervous system.</p>
+        </div>
+        <div class="treatment">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M4 12h4l2-6 4 12 2-6h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3>Deep Tissue</h3>
+          <p class="desc">Firm, targeted pressure for chronic tightness and knotted muscle, head to toe.</p>
+        </div>
+        <div class="treatment">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="14" r="3.4" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="9" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+          <h3>Full-Body Restorative</h3>
+          <p class="desc">A slower, lighter full-body session built for recovery days and an overall reset.</p>
+        </div>
+        <div class="treatment">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 3c-2 3-4 6-4 9a4 4 0 0 0 8 0c0-3-2-6-4-9z" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+          <h3>Custom Blend</h3>
+          <p class="desc">A mix of techniques built around what you need that day — part Swedish, part deep tissue, part whatever works.</p>
+        </div>
+        <div class="treatment">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 3 2 5 4 6v3c0 1 1 2 3 2s3-1 3-2v-3c2-1 4-3 4-6 0-4-3-7-7-7z" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+          <h3>Nuru</h3>
+          <p class="desc">A sensual full-body massage using a special slippery gel, with body-to-body contact for deep relaxation and intimate connection.</p>
+        </div>
+        <div class="treatment">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 2c-2 2-4 4-4 7 0 3 2 5 4 7 2-2 4-4 4-7 0-3-2-5-4-7zM12 16v6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+          <h3>Tantra / Erotic</h3>
+          <p class="desc">A mindful, sensual experience combining breathwork, energy flow, and intimate touch to awaken the senses and deepen pleasure.</p>
+        </div>
+        <div class="treatment">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v10M7 12h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+          <h3>Hot Stone</h3>
+          <p class="desc">Smooth, heated basalt stones are placed and glided across the body to melt tension, improve circulation, and induce deep calm.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -527,7 +562,7 @@
             <p class="pay-note">Send the deposit using whichever of these is set up right now:</p>
 
             <!-- ============================================ -->
-            <!-- EDIT THE THREE LINES BELOW TO UPDATE PAYMENTS -->
+            <!-- EDIT THE FOUR LINES BELOW TO UPDATE PAYMENTS  -->
             <!-- Just replace the text after the dash, keep    -->
             <!-- everything else (the <p> and <strong> tags)   -->
             <!-- the same.                                     -->
@@ -535,6 +570,7 @@
               <p><strong>PayPal</strong> — unavailable rn</p>
               <p><strong>Venmo</strong> — unavailable rn</p>
               <p><strong>Cash App</strong> — $JDRootes61</p>
+              <p><strong>Chime</strong> — $Maigen-Hatch</p>
             </div>
             <!-- ============ END EDIT AREA ================= -->
 
@@ -620,6 +656,15 @@ const TREATMENTS = [
   { id:'custom-blend', name:'Custom Blend',
     desc:'A mix of techniques built around what you need that day — part Swedish, part deep tissue, part whatever works.',
     icon:`<path d="M12 3c-2 3-4 6-4 9a4 4 0 0 0 8 0c0-3-2-6-4-9z" stroke="currentColor" stroke-width="1.6" fill="none"/>` },
+  { id:'nuru', name:'Nuru',
+    desc:'A sensual full-body massage using a special slippery gel, with body-to-body contact for deep relaxation and intimate connection.',
+    icon:`<path d="M12 2C8 2 5 5 5 9c0 3 2 5 4 6v3c0 1 1 2 3 2s3-1 3-2v-3c2-1 4-3 4-6 0-4-3-7-7-7z" stroke="currentColor" stroke-width="1.6" fill="none"/>` },
+  { id:'tantra', name:'Tantra / Erotic',
+    desc:'A mindful, sensual experience combining breathwork, energy flow, and intimate touch to awaken the senses and deepen pleasure.',
+    icon:`<path d="M12 2c-2 2-4 4-4 7 0 3 2 5 4 7 2-2 4-4 4-7 0-3-2-5-4-7zM12 16v6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>` },
+  { id:'hot-stone', name:'Hot Stone',
+    desc:'Smooth, heated basalt stones are placed and glided across the body to melt tension, improve circulation, and induce deep calm.',
+    icon:`<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v10M7 12h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>` },
 ];
 
 const DURATIONS = [
@@ -638,6 +683,7 @@ const BUSINESS_EMAIL = 'xxsari75@gmail.com';
 
 /* ---------------- render treatments ---------------- */
 const grid = document.getElementById('treatmentsGrid');
+grid.innerHTML = ''; // Clear static fallback before rendering
 TREATMENTS.forEach(t => {
   const card = document.createElement('div');
   card.className = 'treatment';
