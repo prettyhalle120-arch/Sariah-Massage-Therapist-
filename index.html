@@ -199,6 +199,15 @@
   .star.filled{color:var(--clay);}
   .review p.quote{font-family:'Fraunces',serif; font-style:italic; font-size:1.08rem; line-height:1.5;}
   .review .who{margin-top:18px; font-size:0.8rem; color:#787064; letter-spacing:0.02em;}
+  .review-reply{margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:0.84rem; color:#54514a; line-height:1.5;}
+  .review-reply strong{color:var(--ink);}
+  .like-btn{
+    margin-top:14px; display:inline-flex; align-items:center; gap:6px;
+    background:none; border:none; cursor:pointer; font-size:0.85rem; color:#787064; padding:0;
+  }
+  .like-btn .like-icon{font-size:1.15rem; color:#B0A593; transition:color .15s ease, transform .15s ease;}
+  .like-btn:hover .like-icon{color:var(--clay);}
+  .like-btn.liked .like-icon{color:var(--clay); transform:scale(1.18);}
 
   .review-form-card{
     margin-top:48px; max-width:560px; background:var(--linen-soft);
@@ -231,6 +240,18 @@
   .pay-methods-simple{margin:12px 0;}
   .pay-methods-simple p{font-size:0.98rem; color:var(--bone); margin:8px 0;}
   .pay-other-note{font-size:0.85rem; color:#9A9384; margin:14px 0 6px;}
+  .receipt-hint{font-size:0.82rem; color:#9A9384; margin:10px 0 0; font-style:italic;}
+  .receipt-hint.sent{color:#9CB088;}
+  .btn:disabled{opacity:0.4; cursor:not-allowed; pointer-events:none;}
+  .loading-step{padding:50px 0; display:flex; flex-direction:column; align-items:center; gap:18px;}
+  .spinner{
+    width:38px; height:38px; border-radius:50%;
+    border:3px solid #454C52; border-top-color:var(--clay);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .spinner{ animation:spin 0.8s linear infinite; }
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
   .back-link{
     display:block; margin-top:14px; background:none; border:none; color:#9A9384;
     font-size:0.82rem; text-decoration:underline; padding:0; cursor:pointer;
@@ -566,14 +587,21 @@
                 <span class="pm-name">Text it to me</span><span class="pm-note">opens Messages with your details</span>
               </a>
             </div>
+            <p class="receipt-hint" id="receiptHint">Send your receipt above first — the button below unlocks once you do.</p>
 
-            <button type="button" class="btn ghost" id="confirmAfterPayBtn" style="margin-top:16px;">I've sent my payment — confirm my booking</button>
+            <button type="button" class="btn ghost" id="confirmAfterPayBtn" style="margin-top:16px;" disabled>I've sent my payment — confirm my booking</button>
             <div class="form-msg" id="paymentMsg"></div>
             <button type="button" id="backToDetailsBtn" class="back-link">← Edit details</button>
           </div>
 
+          <div class="loading-step" id="loadingStep" style="display:none;">
+            <div class="spinner"></div>
+            <p class="pay-note" style="text-align:center;">Confirming your booking…</p>
+          </div>
+
           <div class="pending-step" id="pendingStep" style="display:none;">
             <div class="summary-card" style="margin-top:0;">
+              <div class="summary-row"><span class="k">Appointment #</span><span class="v" id="pendApptNum" style="color:var(--bone); font-weight:700;">—</span></div>
               <div class="summary-row"><span class="k">Status</span><span class="v" style="color:#E3A484;">Pending confirmation</span></div>
               <div class="summary-row"><span class="k">Name</span><span class="v" id="pendSumName">—</span></div>
               <div class="summary-row"><span class="k">Treatment</span><span class="v" id="pendSumService">—</span></div>
@@ -581,7 +609,7 @@
               <div class="summary-row"><span class="k">Deposit</span><span class="v" id="pendSumDeposit">—</span></div>
               <div class="summary-row"><span class="k">Contact</span><span class="v" id="pendSumContact">—</span></div>
             </div>
-            <p class="pay-note">I'll check for your payment and text or email you once it's confirmed. You're safe to close this page.</p>
+            <p class="pay-note">Keep your appointment number for reference. I'll check for your payment and text or email you once it's confirmed. You're safe to close this page.</p>
             <button type="button" class="btn ghost" id="bookAnotherBtn" style="margin-top:6px;">Book another session</button>
           </div>
         </div>
@@ -803,10 +831,13 @@ const textReceiptBtn = document.getElementById('textReceiptBtn');
 const receiptUpload = document.getElementById('receiptUpload');
 const receiptPreviewWrap = document.getElementById('receiptPreviewWrap');
 const receiptPreview = document.getElementById('receiptPreview');
+const receiptHint = document.getElementById('receiptHint');
+const loadingStep = document.getElementById('loadingStep');
 const pendingStep = document.getElementById('pendingStep');
 const bookAnotherBtn = document.getElementById('bookAnotherBtn');
 
 let pendingBooking = null; // holds validated details between step 1 and step 2
+let receiptSent = false; // true once the client taps Email or Text in the payment step
 
 function showMsg(text, type){
   formMsg.textContent = text;
@@ -898,6 +929,10 @@ form.addEventListener('submit', async (e) => {
 
   receiptUpload.value = '';
   receiptPreviewWrap.style.display = 'none';
+  receiptSent = false;
+  confirmAfterPayBtn.disabled = true;
+  receiptHint.textContent = 'Send your receipt above first — the button below unlocks once you do.';
+  receiptHint.classList.remove('sent');
 
   form.style.display = 'none';
   paymentStep.style.display = 'block';
@@ -905,6 +940,15 @@ form.addEventListener('submit', async (e) => {
   showMsg('', '');
   formMsg.className = 'form-msg';
 });
+
+function markReceiptSent(){
+  receiptSent = true;
+  confirmAfterPayBtn.disabled = false;
+  receiptHint.textContent = "Got it — tap the button below to finish.";
+  receiptHint.classList.add('sent');
+}
+emailReceiptBtn.addEventListener('click', markReceiptSent);
+textReceiptBtn.addEventListener('click', markReceiptSent);
 
 backToDetailsBtn.addEventListener('click', () => {
   paymentStep.style.display = 'none';
@@ -918,11 +962,11 @@ backToDetailsBtn.addEventListener('click', () => {
 // Storage failures here are logged but never shown as a blocking error —
 // the deposit and the appointment matter more than our own bookkeeping.
 confirmAfterPayBtn.addEventListener('click', async () => {
-  if(!pendingBooking) return;
-  confirmAfterPayBtn.disabled = true;
-  confirmAfterPayBtn.textContent = 'Confirming…';
+  if(!pendingBooking || !receiptSent) return;
 
   const record = { ...pendingBooking };
+  record.apptNumber = String(Math.floor(100000 + Math.random() * 900000));
+
   try{
     await window.storage.set(record.apptKey, JSON.stringify(record), true);
     await window.storage.set(MY_PREFIX + record.bookingId, JSON.stringify(record), false);
@@ -930,24 +974,31 @@ confirmAfterPayBtn.addEventListener('click', async () => {
     console.warn('Could not save booking to storage (non-blocking):', err);
   }
 
-  document.getElementById('pendSumName').textContent = record.name;
-  document.getElementById('pendSumService').textContent = `${record.serviceName} (${record.durationLabel})`;
-  document.getElementById('pendSumWhen').textContent = formatWhen(record.date, record.time);
-  document.getElementById('pendSumDeposit').textContent = `$${record.deposit}`;
-  document.getElementById('pendSumContact').textContent = `${record.phone} · ${record.email}`;
-
+  // Brief loading state before revealing the appointment number, so the
+  // confirmation feels like it's actually doing something.
   paymentStep.style.display = 'none';
-  pendingStep.style.display = 'block';
+  loadingStep.style.display = 'flex';
 
-  confirmAfterPayBtn.textContent = "I've sent my payment — confirm my booking";
-  confirmAfterPayBtn.disabled = false;
+  setTimeout(() => {
+    document.getElementById('pendApptNum').textContent = record.apptNumber;
+    document.getElementById('pendSumName').textContent = record.name;
+    document.getElementById('pendSumService').textContent = `${record.serviceName} (${record.durationLabel})`;
+    document.getElementById('pendSumWhen').textContent = formatWhen(record.date, record.time);
+    document.getElementById('pendSumDeposit').textContent = `$${record.deposit}`;
+    document.getElementById('pendSumContact').textContent = `${record.phone} · ${record.email}`;
 
-  form.reset();
-  timeHidden.value = '';
-  updateSummary();
-  try{ renderSlots(); }catch(err){}
-  try{ loadMyAppointments(); }catch(err){}
-  pendingBooking = null;
+    loadingStep.style.display = 'none';
+    pendingStep.style.display = 'block';
+
+    confirmAfterPayBtn.textContent = "I've sent my payment — confirm my booking";
+
+    form.reset();
+    timeHidden.value = '';
+    updateSummary();
+    try{ renderSlots(); }catch(err){}
+    try{ loadMyAppointments(); }catch(err){}
+    pendingBooking = null;
+  }, 1200);
 });
 
 bookAnotherBtn.addEventListener('click', () => {
@@ -986,7 +1037,7 @@ async function loadMyAppointments(){
     row.className = 'appt-item';
     row.innerHTML = `
       <div class="info">
-        <span class="svc">${data.serviceName}${data.durationLabel ? ' · ' + data.durationLabel : ''}</span>
+        <span class="svc">${data.serviceName}${data.durationLabel ? ' · ' + data.durationLabel : ''}${data.apptNumber ? ' · #' + data.apptNumber : ''}</span>
         <span class="when">${formatWhen(data.date, data.time)} · <em style="color:#C9A06B; font-style:normal;">pending confirmation</em></span>
       </div>
       <button type="button" data-key="${key}" data-apptkey="${data.apptKey}">Cancel</button>
@@ -1011,14 +1062,16 @@ async function loadMyAppointments(){
 
 /* ---------------- reviews ---------------- */
 // ============================================
-// TO ADD A REAL REVIEW: copy one line below, change
-// the name/rating/text, and add it to this list.
-// rating must be a whole number 1-5.
+// TO ADD A REAL REVIEW: copy one block below, change
+// the name/rating/text/likes, and add it to this list.
+// rating must be a whole number 1-5. "reply" is optional —
+// leave it as '' (empty) if you don't want to respond.
 // ============================================
 const REVIEWS_SEED = [
-  { name:'Maya R.', rating:5, text:'I came in after a week of bad desk posture and left able to turn my head again. The deep tissue work on my shoulders was worth it alone.', createdAt:'' },
-  { name:'Daniel O.', rating:5, text:"My therapist actually listened when I said my lower back, not my neck, was the problem. First massage that targeted the right spot.", createdAt:'' },
-  { name:'Priya K.', rating:4, text:'Booked a full-body session same-day and the pacing was perfect — relaxing without feeling rushed at the end.', createdAt:'' },
+  { name:'Maya R.', rating:5, text:'I came in after a week of bad desk posture and left able to turn my head again. The deep tissue work on my shoulders was worth it alone.', reply:"So glad that tension finally let go, Maya! Desk-related neck and shoulder tightness is so common — come back anytime it creeps up again.", likes:3 },
+  { name:'Daniel O.', rating:5, text:"My therapist actually listened when I said my lower back, not my neck, was the problem. First massage that targeted the right spot.", reply:"Thank you, Daniel — that's exactly the goal: treating what's actually bothering you instead of running a generic routine. Glad it helped.", likes:5 },
+  { name:'Priya K.', rating:4, text:'Booked a full-body session same-day and the pacing was perfect — relaxing without feeling rushed at the end.', reply:"Thank you, Priya! That balance between relaxing and not rushed is something I really try to get right, so this means a lot.", likes:2 },
+  { name:'Jordan T.', rating:2, text:'The massage itself was good, but I had to wait 15 minutes past my appointment time with no update on what was going on.', reply:"I'm sorry about the wait that day — a previous session ran long and I should've reached out sooner to let you know. I've adjusted my scheduling buffer since so this doesn't happen again. Thank you for the honest feedback and for giving us a shot.", likes:1 },
 ];
 // ============ END EDIT AREA ================
 
@@ -1036,35 +1089,48 @@ function starsHTML(rating){
   return html;
 }
 
-async function renderReviews(){
+function renderReviews(){
   const grid = document.getElementById('reviewsGrid');
-  let extra = [];
-  try{
-    const res = await window.storage.list('review:', true);
-    if(res && res.keys){
-      for(const k of res.keys){
-        try{
-          const r = await window.storage.get(k, true);
-          if(r) extra.push(JSON.parse(r.value));
-        }catch(err){ /* skip */ }
-      }
-    }
-  }catch(err){ extra = []; }
-  extra.sort((a,b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-
-  const all = [...extra, ...REVIEWS_SEED];
   grid.innerHTML = '';
-  all.forEach(r => {
+  REVIEWS_SEED.forEach(r => {
     const card = document.createElement('div');
     card.className = 'review';
     card.innerHTML = `
       <div class="stars" aria-label="${r.rating} out of 5 stars">${starsHTML(r.rating)}</div>
       <p class="quote">"${escapeHtml(r.text)}"</p>
       <p class="who">— ${escapeHtml(r.name)}</p>
+      ${r.reply ? `<div class="review-reply"><strong>Reply from Sariah:</strong> ${escapeHtml(r.reply)}</div>` : ''}
+      <button type="button" class="like-btn" data-liked="false">
+        <span class="like-icon">♡</span><span class="like-count">${r.likes || 0}</span>
+      </button>
     `;
     grid.appendChild(card);
   });
 }
+
+// One click handler on the grid covers every review card, even after
+// renderReviews() rebuilds them. Likes are visual only — they reset on
+// reload since there's no backend behind this page to store them.
+document.getElementById('reviewsGrid').addEventListener('click', (e) => {
+  const btn = e.target.closest('.like-btn');
+  if(!btn) return;
+  const liked = btn.dataset.liked === 'true';
+  const countEl = btn.querySelector('.like-count');
+  const iconEl = btn.querySelector('.like-icon');
+  let count = parseInt(countEl.textContent) || 0;
+  if(liked){
+    count = Math.max(0, count - 1);
+    btn.dataset.liked = 'false';
+    btn.classList.remove('liked');
+    iconEl.textContent = '♡';
+  } else {
+    count += 1;
+    btn.dataset.liked = 'true';
+    btn.classList.add('liked');
+    iconEl.textContent = '♥';
+  }
+  countEl.textContent = count;
+});
 
 /* star picker */
 const starPicker = document.getElementById('starPicker');
