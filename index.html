@@ -239,7 +239,16 @@
   .pm-note{font-size:0.78rem; color:#9A9384;}
   .pay-methods-simple{margin:12px 0;}
   .pay-methods-simple p{font-size:0.98rem; color:var(--bone); margin:8px 0;}
-  .pay-other-note{font-size:0.85rem; color:#9A9384; margin:14px 0 6px;}
+  .pay-picker{display:flex; flex-wrap:wrap; gap:10px; margin:4px 0 10px;}
+  .pay-chip{
+    padding:11px 18px; border:1px solid #454C52; border-radius:30px;
+    background:#2A3035; color:#C9C2B2; font-size:0.88rem; font-weight:500;
+    cursor:pointer; transition:border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .pay-chip:hover{border-color:var(--clay); color:var(--bone);}
+  .pay-chip.selected{background:var(--clay); border-color:var(--clay); color:var(--bone);}
+  .pay-chip.regular{border-style:dashed; color:#9A9384;}
+  .pay-chip.regular.selected{background:var(--moss); border-color:var(--moss); border-style:solid; color:var(--bone);}
   .receipt-hint{font-size:0.82rem; color:#9A9384; margin:10px 0 0; font-style:italic;}
   .receipt-hint.sent{color:#9CB088;}
   .btn:disabled{opacity:0.4; cursor:not-allowed; pointer-events:none;}
@@ -547,56 +556,36 @@
 
           <div class="payment-step" id="paymentStep" style="display:none;">
             <div class="summary-card" style="margin-top:0;">
+              <div class="summary-row"><span class="k">Name</span><span class="v" id="paySumName">—</span></div>
               <div class="summary-row"><span class="k">Treatment</span><span class="v" id="paySumService">—</span></div>
               <div class="summary-row"><span class="k">Date &amp; time</span><span class="v" id="paySumWhen">—</span></div>
               <div class="summary-row"><span class="k">Deposit due now</span><span class="v" id="paySumDeposit">—</span></div>
               <div class="summary-row"><span class="k">Balance at session</span><span class="v" id="paySumBalance">—</span></div>
             </div>
 
-            <p class="pay-note">Send the deposit using whichever of these is set up right now:</p>
+            <p class="pay-note">Select which payment method you have — then tap confirm to text me directly and we'll sort it out.</p>
 
-            <!-- ============================================ -->
-            <!-- EDIT THE FOUR LINES BELOW TO UPDATE PAYMENTS  -->
-            <!-- Just replace the text after the dash, keep    -->
-            <!-- everything else (the <p> and <strong> tags)   -->
-            <!-- the same.                                     -->
-            <div class="pay-methods-simple">
-              <p><strong>Chime 🏷️</strong> — $Maigen-Hatch</p>
-              <p><strong>Cash App</strong> — text or email to ask</p>
-              <p><strong>Venmo 🏷️</strong> — @Ruth-DaCorsi-1<br><small style="color:#9A9384; font-size:0.78rem;">⚠️ Last 4 digits to confirm identity: <strong style="color:#E3A484;">1544</strong> — make sure it matches before you send.</small></p>
-              <p><strong>PayPal</strong> — text or email to ask</p>
+            <div class="pay-picker" id="payPicker">
+              <button type="button" class="pay-chip" data-method="Chime ($Maigen-Hatch)">Chime</button>
+              <button type="button" class="pay-chip" data-method="Venmo">Venmo</button>
+              <button type="button" class="pay-chip" data-method="PayPal">PayPal</button>
+              <button type="button" class="pay-chip" data-method="Zelle">Zelle</button>
+              <button type="button" class="pay-chip" data-method="Card / Apple Pay">Card / Apple Pay</button>
+              <button type="button" class="pay-chip regular" data-method="Cash (regular client)">Cash — regular client</button>
             </div>
-            <!-- ============ END EDIT AREA ================= -->
+            <p class="receipt-hint" id="receiptHint">Choose a payment method above to unlock the buttons below.</p>
 
-            <p class="pay-other-note">Paying another way? Text or email me and we'll sort it out.</p>
-
-            <div class="field">
-              <label for="receiptUpload">Attach a screenshot of your payment (optional, but it speeds up confirmation)</label>
-              <input type="file" id="receiptUpload" accept="image/*">
-              <div id="receiptPreviewWrap" style="display:none; margin-top:10px;">
-                <img id="receiptPreview" alt="Your uploaded payment screenshot" style="max-width:160px; border-radius:4px; border:1px solid #454C52;">
-              </div>
-            </div>
-
-            <p class="pay-note">Then send it to me here — your details are already filled in, just attach the photo before you hit send:</p>
-            <div class="pay-methods">
-              <a href="#" id="emailReceiptBtn" target="_blank" rel="noopener" class="pay-method-btn">
-                <span class="pm-name">Email it to me</span><span class="pm-note">opens Mail with your details</span>
-              </a>
-              <a href="#" id="textReceiptBtn" class="pay-method-btn">
-                <span class="pm-name">Text it to me</span><span class="pm-note">opens Messages with your details</span>
-              </a>
-            </div>
-            <p class="receipt-hint" id="receiptHint">Send your receipt above first — the button below unlocks once you do.</p>
-
-            <button type="button" class="btn ghost" id="confirmAfterPayBtn" style="margin-top:16px;" disabled>I've sent my payment — confirm my booking</button>
+            <a href="#" id="confirmAfterPayBtn" class="btn" style="margin-top:16px; display:block; text-align:center; text-decoration:none;" aria-disabled="true">📱 Text Sariah to confirm</a>
+            <a href="#" id="emailConfirmBtn" class="btn ghost" style="margin-top:10px; display:block; text-align:center; text-decoration:none;" aria-disabled="true">✉️ Email Sariah to confirm</a>
+            <p class="receipt-hint" id="sentHint" style="display:none;">Sent? Tap below to get your appointment number.</p>
+            <button type="button" class="btn ghost" id="showPendingBtn" style="margin-top:10px; display:none;">Show my appointment →</button>
             <div class="form-msg" id="paymentMsg"></div>
             <button type="button" id="backToDetailsBtn" class="back-link">← Edit details</button>
           </div>
 
           <div class="loading-step" id="loadingStep" style="display:none;">
             <div class="spinner"></div>
-            <p class="pay-note" style="text-align:center;">Confirming your booking…</p>
+            <p class="pay-note" style="text-align:center;">Sending your booking request…</p>
           </div>
 
           <div class="pending-step" id="pendingStep" style="display:none;">
@@ -825,19 +814,18 @@ const paymentStep = document.getElementById('paymentStep');
 const summaryCard = document.getElementById('summaryCard');
 const paymentMsg = document.getElementById('paymentMsg');
 const confirmAfterPayBtn = document.getElementById('confirmAfterPayBtn');
+const emailConfirmBtn = document.getElementById('emailConfirmBtn');
+const showPendingBtn = document.getElementById('showPendingBtn');
+const sentHint = document.getElementById('sentHint');
 const backToDetailsBtn = document.getElementById('backToDetailsBtn');
-const emailReceiptBtn = document.getElementById('emailReceiptBtn');
-const textReceiptBtn = document.getElementById('textReceiptBtn');
-const receiptUpload = document.getElementById('receiptUpload');
-const receiptPreviewWrap = document.getElementById('receiptPreviewWrap');
-const receiptPreview = document.getElementById('receiptPreview');
 const receiptHint = document.getElementById('receiptHint');
+const payPicker = document.getElementById('payPicker');
 const loadingStep = document.getElementById('loadingStep');
 const pendingStep = document.getElementById('pendingStep');
 const bookAnotherBtn = document.getElementById('bookAnotherBtn');
 
 let pendingBooking = null; // holds validated details between step 1 and step 2
-let receiptSent = false; // true once the client taps Email or Text in the payment step
+let selectedPayMethod = null; // set when client taps a payment chip
 
 function showMsg(text, type){
   formMsg.textContent = text;
@@ -848,19 +836,32 @@ function showPaymentMsg(text, type){
   paymentMsg.className = 'form-msg show on-light ' + type;
 }
 
-// Local-only preview of the selected receipt photo. This is never
-// uploaded or sent anywhere automatically — browsers can't attach a
-// file to a text message or email link on their own. The person still
-// needs to tap the Email/Text button below and attach it there.
-receiptUpload.addEventListener('change', () => {
-  const file = receiptUpload.files[0];
-  if(!file){ receiptPreviewWrap.style.display = 'none'; return; }
-  const reader = new FileReader();
-  reader.onload = () => {
-    receiptPreview.src = reader.result;
-    receiptPreviewWrap.style.display = 'block';
-  };
-  reader.readAsDataURL(file);
+// Payment chip picker — one click selects the method and unlocks confirm.
+payPicker.addEventListener('click', (e) => {
+  const chip = e.target.closest('.pay-chip');
+  if(!chip) return;
+  payPicker.querySelectorAll('.pay-chip').forEach(c => c.classList.remove('selected'));
+  chip.classList.add('selected');
+  selectedPayMethod = chip.dataset.method;
+
+  if(!pendingBooking) return;
+  const b = pendingBooking;
+  const smsBody = `Hi Sariah! I'd like to confirm my booking.\n\nName: ${b.name}\nTreatment: ${b.serviceName} (${b.durationLabel})\nDate & time: ${formatWhen(b.date, b.time)}\nDeposit: $${b.deposit}\nPayment method: ${selectedPayMethod}\n\nPlease confirm my appointment.`;
+  confirmAfterPayBtn.href = `sms:${BUSINESS_PHONE}?&body=${encodeURIComponent(smsBody)}`;
+  confirmAfterPayBtn.removeAttribute('aria-disabled');
+  confirmAfterPayBtn.style.opacity = '1';
+  confirmAfterPayBtn.style.pointerEvents = 'auto';
+
+  const emailSubject = `Booking confirmation — ${b.name}`;
+  emailConfirmBtn.href = `mailto:${BUSINESS_EMAIL}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(smsBody)}`;
+  emailConfirmBtn.removeAttribute('aria-disabled');
+  emailConfirmBtn.style.opacity = '1';
+  emailConfirmBtn.style.pointerEvents = 'auto';
+
+  receiptHint.textContent = `${selectedPayMethod} selected — text or email Sariah below.`;
+  receiptHint.classList.add('sent');
+  sentHint.style.display = 'block';
+  showPendingBtn.style.display = 'block';
 });
 
 // Step 1: validate details, then move to the payment step.
@@ -918,20 +919,26 @@ form.addEventListener('submit', async (e) => {
     apptKey, createdAt: new Date().toISOString()
   };
 
+  document.getElementById('paySumName').textContent = name;
   document.getElementById('paySumService').textContent = treatmentName;
   document.getElementById('paySumWhen').textContent = formatWhen(date, time);
   document.getElementById('paySumDeposit').textContent = `$${deposit}`;
   document.getElementById('paySumBalance').textContent = `$${balance} at your session`;
 
-  const receiptMsg = `Hi Sariah, here's my payment receipt.\n\nName: ${name}\nTreatment: ${treatmentName} (${durationObj.label})\nDate & time: ${formatWhen(date, time)}\nDeposit: $${deposit}\n\n(Attach your screenshot before sending!)`;
-  emailReceiptBtn.href = `mailto:${BUSINESS_EMAIL}?subject=${encodeURIComponent('Payment receipt — ' + name)}&body=${encodeURIComponent(receiptMsg)}`;
-  textReceiptBtn.href = `sms:${BUSINESS_PHONE}?&body=${encodeURIComponent(receiptMsg)}`;
-
-  receiptUpload.value = '';
-  receiptPreviewWrap.style.display = 'none';
-  receiptSent = false;
-  confirmAfterPayBtn.disabled = true;
-  receiptHint.textContent = 'Send your receipt above first — the button below unlocks once you do.';
+  // Reset chip selection for each new booking flow
+  selectedPayMethod = null;
+  payPicker.querySelectorAll('.pay-chip').forEach(c => c.classList.remove('selected'));
+  confirmAfterPayBtn.href = '#';
+  confirmAfterPayBtn.setAttribute('aria-disabled', 'true');
+  confirmAfterPayBtn.style.opacity = '0.4';
+  confirmAfterPayBtn.style.pointerEvents = 'none';
+  emailConfirmBtn.href = '#';
+  emailConfirmBtn.setAttribute('aria-disabled', 'true');
+  emailConfirmBtn.style.opacity = '0.4';
+  emailConfirmBtn.style.pointerEvents = 'none';
+  sentHint.style.display = 'none';
+  showPendingBtn.style.display = 'none';
+  receiptHint.textContent = 'Choose a payment method above to unlock the button below.';
   receiptHint.classList.remove('sent');
 
   form.style.display = 'none';
@@ -940,15 +947,6 @@ form.addEventListener('submit', async (e) => {
   showMsg('', '');
   formMsg.className = 'form-msg';
 });
-
-function markReceiptSent(){
-  receiptSent = true;
-  confirmAfterPayBtn.disabled = false;
-  receiptHint.textContent = "Got it — tap the button below to finish.";
-  receiptHint.classList.add('sent');
-}
-emailReceiptBtn.addEventListener('click', markReceiptSent);
-textReceiptBtn.addEventListener('click', markReceiptSent);
 
 backToDetailsBtn.addEventListener('click', () => {
   paymentStep.style.display = 'none';
@@ -961,10 +959,11 @@ backToDetailsBtn.addEventListener('click', () => {
 // to a dedicated pending-confirmation page showing their details.
 // Storage failures here are logged but never shown as a blocking error —
 // the deposit and the appointment matter more than our own bookkeeping.
-confirmAfterPayBtn.addEventListener('click', async () => {
-  if(!pendingBooking || !receiptSent) return;
+showPendingBtn.addEventListener('click', async () => {
+  if(!pendingBooking || !selectedPayMethod) return;
 
   const record = { ...pendingBooking };
+  record.payMethod = selectedPayMethod;
   record.apptNumber = String(Math.floor(100000 + Math.random() * 900000));
 
   try{
@@ -974,8 +973,6 @@ confirmAfterPayBtn.addEventListener('click', async () => {
     console.warn('Could not save booking to storage (non-blocking):', err);
   }
 
-  // Brief loading state before revealing the appointment number, so the
-  // confirmation feels like it's actually doing something.
   paymentStep.style.display = 'none';
   loadingStep.style.display = 'flex';
 
@@ -990,15 +987,14 @@ confirmAfterPayBtn.addEventListener('click', async () => {
     loadingStep.style.display = 'none';
     pendingStep.style.display = 'block';
 
-    confirmAfterPayBtn.textContent = "I've sent my payment — confirm my booking";
-
     form.reset();
     timeHidden.value = '';
     updateSummary();
     try{ renderSlots(); }catch(err){}
     try{ loadMyAppointments(); }catch(err){}
     pendingBooking = null;
-  }, 1200);
+    selectedPayMethod = null;
+  }, 1400);
 });
 
 bookAnotherBtn.addEventListener('click', () => {
