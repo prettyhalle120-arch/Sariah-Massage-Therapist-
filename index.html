@@ -576,6 +576,8 @@
               <button type="button" class="pay-chip" data-method="PayPal">PayPal</button>
               <button type="button" class="pay-chip" data-method="Zelle">Zelle</button>
               <button type="button" class="pay-chip" data-method="Card / Apple Pay">Card / Apple Pay</button>
+              <button type="button" class="pay-chip giftcard-chip" data-method="Sephora Gift Card (in-store)">🎁 Sephora Gift Card — Walk in to store</button>
+              <button type="button" class="pay-chip giftcard-chip" data-method="Sephora Gift Card (eGift online)" data-giftlink="https://www.giftcards.com/us/en/catalog/product-details/sephora-gift-card-virtual">🎁 Sephora Gift Card — Get eCode online</button>
               <button type="button" class="pay-chip regular" data-method="Cash (regular client)" id="cashChip">💵 Cash — regular clients only</button>
             </div>
             <p class="cash-warning">⚠️ <strong>Cash is for returning clients only.</strong> If this is your first time booking with Sariah, please choose a digital payment method above.</p>
@@ -852,6 +854,12 @@ payPicker.addEventListener('click', (e) => {
     const confirmed = window.confirm("Cash is for returning clients only.\n\nAre you a regular client who has booked with Sariah before?");
     if(!confirmed) return; // they clicked Cancel — don't select it
   }
+
+  // If they tap either Sephora gift card option, open the right purchase page for them
+  if(chip.classList.contains('giftcard-chip') && chip.dataset.giftlink){
+    window.open(chip.dataset.giftlink, '_blank', 'noopener');
+  }
+
   payPicker.querySelectorAll('.pay-chip').forEach(c => c.classList.remove('selected'));
   chip.classList.add('selected');
   selectedPayMethod = chip.dataset.method;
@@ -888,8 +896,17 @@ form.addEventListener('submit', async (e) => {
   const email = document.getElementById('email').value.trim();
   const notes = document.getElementById('notes').value.trim();
 
-  if(!service || !duration || !date || !time || !name || !phone || !email){
-    showMsg('Please fill in every field and pick a time slot.', 'error');
+  const missing = [];
+  if(!service) missing.push('treatment');
+  if(!duration) missing.push('session length');
+  if(!date) missing.push('date');
+  if(!time) missing.push('time slot');
+  if(!name) missing.push('name');
+  if(!phone) missing.push('phone');
+  if(!email) missing.push('email');
+
+  if(missing.length){
+    showMsg('Still needed: ' + missing.join(', ') + '.', 'error');
     return;
   }
 
@@ -898,12 +915,15 @@ form.addEventListener('submit', async (e) => {
 
   const apptKey = `${STORAGE_PREFIX}${date}:${time}`;
 
-  // Best-effort availability check. If storage isn't available in this
-  // context, we don't want that to block the person from booking — it
-  // just skips the double-booking check.
+  // Best-effort availability check. If storage isn't available (or is slow
+  // to respond) in this context, we don't want that to block the person
+  // from booking — it just skips the double-booking check. The timeout
+  // guarantees this can never hang the "Continue to payment" button.
   let taken = false;
   try{
-    const existing = await window.storage.get(apptKey, true);
+    const storageCheck = window.storage.get(apptKey, true);
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('storage timeout')), 4000));
+    const existing = await Promise.race([storageCheck, timeout]);
     if(existing) taken = true;
   }catch(err){
     taken = false;
@@ -918,46 +938,52 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  const treatment = TREATMENTS.find(t => t.id === service);
-  const treatmentName = service === 'other' ? 'Custom request (see notes)' : treatment.name;
-  const durationObj = DURATIONS.find(d => d.value === duration);
-  const deposit = Math.round(durationObj.price / 2);
-  const balance = durationObj.price - deposit;
+  try{
+    const treatment = TREATMENTS.find(t => t.id === service);
+    const treatmentName = service === 'other' ? 'Custom request (see notes)' : treatment.name;
+    const durationObj = DURATIONS.find(d => d.value === duration);
+    const deposit = Math.round(durationObj.price / 2);
+    const balance = durationObj.price - deposit;
 
-  pendingBooking = {
-    bookingId: 'b' + Date.now() + Math.floor(Math.random()*1000),
-    service, serviceName: treatmentName, duration, durationLabel: durationObj.label,
-    price: durationObj.price, deposit, balance, date, time, name, phone, email, notes,
-    apptKey, createdAt: new Date().toISOString()
-  };
+    pendingBooking = {
+      bookingId: 'b' + Date.now() + Math.floor(Math.random()*1000),
+      service, serviceName: treatmentName, duration, durationLabel: durationObj.label,
+      price: durationObj.price, deposit, balance, date, time, name, phone, email, notes,
+      apptKey, createdAt: new Date().toISOString()
+    };
 
-  document.getElementById('paySumName').textContent = name;
-  document.getElementById('paySumService').textContent = treatmentName;
-  document.getElementById('paySumWhen').textContent = formatWhen(date, time);
-  document.getElementById('paySumDeposit').textContent = `$${deposit}`;
-  document.getElementById('paySumBalance').textContent = `$${balance} at your session`;
+    document.getElementById('paySumName').textContent = name;
+    document.getElementById('paySumService').textContent = treatmentName;
+    document.getElementById('paySumWhen').textContent = formatWhen(date, time);
+    document.getElementById('paySumDeposit').textContent = `$${deposit}`;
+    document.getElementById('paySumBalance').textContent = `$${balance} at your session`;
 
-  // Reset chip selection for each new booking flow
-  selectedPayMethod = null;
-  payPicker.querySelectorAll('.pay-chip').forEach(c => c.classList.remove('selected'));
-  confirmAfterPayBtn.href = '#';
-  confirmAfterPayBtn.setAttribute('aria-disabled', 'true');
-  confirmAfterPayBtn.style.opacity = '0.4';
-  confirmAfterPayBtn.style.pointerEvents = 'none';
-  emailConfirmBtn.href = '#';
-  emailConfirmBtn.setAttribute('aria-disabled', 'true');
-  emailConfirmBtn.style.opacity = '0.4';
-  emailConfirmBtn.style.pointerEvents = 'none';
-  sentHint.style.display = 'none';
-  showPendingBtn.style.display = 'none';
-  receiptHint.textContent = 'Choose a payment method above to unlock the button below.';
-  receiptHint.classList.remove('sent');
+    // Reset chip selection for each new booking flow
+    selectedPayMethod = null;
+    payPicker.querySelectorAll('.pay-chip').forEach(c => c.classList.remove('selected'));
+    confirmAfterPayBtn.href = '#';
+    confirmAfterPayBtn.setAttribute('aria-disabled', 'true');
+    confirmAfterPayBtn.style.opacity = '0.4';
+    confirmAfterPayBtn.style.pointerEvents = 'none';
+    emailConfirmBtn.href = '#';
+    emailConfirmBtn.setAttribute('aria-disabled', 'true');
+    emailConfirmBtn.style.opacity = '0.4';
+    emailConfirmBtn.style.pointerEvents = 'none';
+    sentHint.style.display = 'none';
+    showPendingBtn.style.display = 'none';
+    receiptHint.textContent = 'Choose a payment method above to unlock the button below.';
+    receiptHint.classList.remove('sent');
 
-  form.style.display = 'none';
-  paymentStep.style.display = 'block';
-  summaryCard.style.display = 'none';
-  showMsg('', '');
-  formMsg.className = 'form-msg';
+    form.style.display = 'none';
+    paymentStep.style.display = 'block';
+    summaryCard.style.display = 'none';
+    showMsg('', '');
+    formMsg.className = 'form-msg';
+  }catch(err){
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Continue to payment';
+    showMsg('Something went wrong moving to payment — please try again.', 'error');
+  }
 });
 
 backToDetailsBtn.addEventListener('click', () => {
