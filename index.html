@@ -249,6 +249,11 @@
   .pay-chip.selected{background:var(--clay); border-color:var(--clay); color:var(--bone);}
   .pay-chip.regular{border-style:dashed; color:#9A9384;}
   .pay-chip.regular.selected{background:var(--moss); border-color:var(--moss); border-style:solid; color:var(--bone);}
+  .cash-warning{
+    font-size:0.82rem; color:#C9A06B; margin:4px 0 10px;
+    padding:10px 14px; border:1px solid #5A4A2A; border-radius:4px;
+    background:rgba(201,160,107,0.08); line-height:1.5;
+  }
   .receipt-hint{font-size:0.82rem; color:#9A9384; margin:10px 0 0; font-style:italic;}
   .receipt-hint.sent{color:#9CB088;}
   .btn:disabled{opacity:0.4; cursor:not-allowed; pointer-events:none;}
@@ -571,8 +576,9 @@
               <button type="button" class="pay-chip" data-method="PayPal">PayPal</button>
               <button type="button" class="pay-chip" data-method="Zelle">Zelle</button>
               <button type="button" class="pay-chip" data-method="Card / Apple Pay">Card / Apple Pay</button>
-              <button type="button" class="pay-chip regular" data-method="Cash (regular client)">Cash — regular client</button>
+              <button type="button" class="pay-chip regular" data-method="Cash (regular client)" id="cashChip">💵 Cash — regular clients only</button>
             </div>
+            <p class="cash-warning">⚠️ <strong>Cash is for returning clients only.</strong> If this is your first time booking with Sariah, please choose a digital payment method above.</p>
             <p class="receipt-hint" id="receiptHint">Choose a payment method above to unlock the buttons below.</p>
 
             <a href="#" id="confirmAfterPayBtn" class="btn" style="margin-top:16px; display:block; text-align:center; text-decoration:none;" aria-disabled="true">📱 Text Sariah to confirm</a>
@@ -840,6 +846,12 @@ function showPaymentMsg(text, type){
 payPicker.addEventListener('click', (e) => {
   const chip = e.target.closest('.pay-chip');
   if(!chip) return;
+
+  // If they tap Cash, make them confirm they're a returning client first
+  if(chip.id === 'cashChip'){
+    const confirmed = window.confirm("Cash is for returning clients only.\n\nAre you a regular client who has booked with Sariah before?");
+    if(!confirmed) return; // they clicked Cancel — don't select it
+  }
   payPicker.querySelectorAll('.pay-chip').forEach(c => c.classList.remove('selected'));
   chip.classList.add('selected');
   selectedPayMethod = chip.dataset.method;
