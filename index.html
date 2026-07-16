@@ -487,7 +487,7 @@
           <div class="section-head">
             <p class="label on-dark">Book a session</p>
             <h2>Pick a treatment, then a time.</h2>
-            <p>Sunday–Friday, mornings until 10pm. Last booking starts at 9pm. Closed Saturdays.</p>
+            <p>Open around the clock, every day. Last booking starts at 9pm.</p>
             <p class="cancel-policy">Please give at least 24 hours' notice to cancel or reschedule. No-shows and late cancellations forfeit the deposit.</p>
           </div>
           <div class="summary-card" id="summaryCard">
@@ -629,7 +629,7 @@
       </div>
       <div class="footer-col">
         <h4>Hours</h4>
-        <p>Sun–Fri, mornings until 10pm</p>
+        <p>Every day, around the clock</p>
       </div>
       <div class="footer-col">
         <h4>Message me</h4>
@@ -672,7 +672,7 @@ const DURATIONS = [
   { value:'overnight', label:'Overnight', price:600 },
 ];
 
-const OPEN_HOUR = 8, CLOSE_LAST_START = 21; // open mornings, last booking starts at 21:00 (9pm) so a 60-min session ends by 10pm
+const OPEN_HOUR = 0, CLOSE_LAST_START = 23; // open all day, last booking starts at 23:00 (11pm)
 const STORAGE_PREFIX = 'appt:';   // shared, keyed by appt:{date}:{time}
 const MY_PREFIX = 'mybooking:';   // personal
 
@@ -757,10 +757,6 @@ async function renderSlots(){
     slotsEl.innerHTML = `<p class="slots-empty">Pick a date to see open times.</p>`;
     return;
   }
-  if(isSaturday(date)){
-    slotsEl.innerHTML = `<p class="slots-empty">Closed Saturdays — please choose another date.</p>`;
-    return;
-  }
   slotsEl.innerHTML = `<p class="slots-empty">Loading times…</p>`;
 
   let bookedTimes = new Set();
@@ -779,7 +775,7 @@ async function renderSlots(){
   slotsEl.innerHTML = '';
   for(let h = OPEN_HOUR; h <= CLOSE_LAST_START; h++){
     const timeStr = String(h).padStart(2,'0') + ':00';
-    const label = h > 12 ? `${h-12}:00 PM` : (h === 12 ? '12:00 PM' : `${h}:00 AM`);
+    const label = h > 12 ? `${h-12}:00 PM` : (h === 12 ? '12:00 PM' : (h === 0 ? '12:00 AM' : `${h}:00 AM`));
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'slot-btn';
