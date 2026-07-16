@@ -489,6 +489,7 @@
             <h2>Pick a treatment, then a time.</h2>
             <p>Open around the clock, every day. Last booking starts at 9pm.</p>
             <p class="cancel-policy">Please give at least 24 hours' notice to cancel or reschedule. No-shows and late cancellations forfeit the deposit.</p>
+            <p class="cancel-policy"><strong style="color:#D8D2C4; font-style:normal;">First-time clients:</strong> a partial payment is required to confirm your appointment. Once your payment is verified, your appointment is booked. Returning clients may pay the full amount in person instead.</p>
           </div>
           <div class="summary-card" id="summaryCard">
             <div class="summary-row"><span class="k">Treatment</span><span class="v" id="sumService">—</span></div>
@@ -581,6 +582,7 @@
               <button type="button" class="pay-chip" data-method="PayPal">PayPal</button>
               <button type="button" class="pay-chip" data-method="Zelle">Zelle</button>
               <button type="button" class="pay-chip" data-method="Card / Apple Pay">Card / Apple Pay</button>
+              <button type="button" class="pay-chip" data-method="Bitcoin (instant payment)">₿ Bitcoin (instant payment)</button>
               <button type="button" class="pay-chip giftcard-chip" data-method="Sephora Gift Card (in-store)">🎁 Sephora Gift Card — Walk in to store</button>
               <button type="button" class="pay-chip giftcard-chip" data-method="Sephora Gift Card (eGift online)" data-giftlink="https://www.giftcards.com/us/en/catalog/product-details/sephora-gift-card-virtual">🎁 Sephora Gift Card — Get eCode online</button>
               <button type="button" class="pay-chip regular" data-method="Cash (regular client)" id="cashChip">💵 Cash — regular clients only</button>
@@ -744,11 +746,6 @@ function todayISO(){
 }
 dateInput.min = todayISO();
 
-function isSaturday(dateStr){
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.getDay() === 6;
-}
-
 async function renderSlots(){
   const date = dateInput.value;
   timeHidden.value = '';
@@ -773,6 +770,8 @@ async function renderSlots(){
   }
 
   slotsEl.innerHTML = '';
+  const now = new Date();
+  const isToday = date === todayISO();
   for(let h = OPEN_HOUR; h <= CLOSE_LAST_START; h++){
     const timeStr = String(h).padStart(2,'0') + ':00';
     const label = h > 12 ? `${h-12}:00 PM` : (h === 12 ? '12:00 PM' : (h === 0 ? '12:00 AM' : `${h}:00 AM`));
@@ -781,7 +780,8 @@ async function renderSlots(){
     btn.className = 'slot-btn';
     btn.textContent = label;
     btn.dataset.time = timeStr;
-    if(bookedTimes.has(timeStr)){
+    const isPast = isToday && h <= now.getHours();
+    if(bookedTimes.has(timeStr) || isPast){
       btn.disabled = true;
     }
     btn.addEventListener('click', () => {
